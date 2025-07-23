@@ -1,0 +1,372 @@
+.container {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.header {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #000000;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: 600;
+  color: #000000;
+}
+
+.userEmail {
+  font-size: 0.875rem;
+  color: #666666;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.stat {
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #000000;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: #666666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.logoutButton {
+  background: white;
+  color: #ef4444;
+  border: 2px solid #ef4444;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.leaderboardButton {
+  background: white;
+  color: black;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 2px solid black;
+  font-size: 0.875rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+@media screen and (min-width: 768px) {
+  .leaderboardButton:hover {
+    background: black;
+    color: white;
+  }
+
+  .logoutButton:hover {
+    background: #dc2626;
+    color: white;
+  }
+}
+
+.main {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcomeSection {
+  background-color: #000000;
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.welcomeTitle {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.welcomeSubtitle {
+  opacity: 0.9;
+  font-size: 1rem;
+}
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+.taskGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.taskCard {
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  background: white;
+}
+
+.taskCard:hover {
+  border-color: #000000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.taskHeader {
+  display: flex;
+  justify-content: between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.taskTitle {
+  font-weight: 600;
+  color: #000000;
+  margin-bottom: 0.25rem;
+}
+
+.taskType {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.taskType.challenge {
+  background: #f0f0f0;
+  color: #000000;
+}
+
+.taskType.mentorSession {
+  background: #f0f0f0;
+  color: #000000;
+}
+
+.taskType.subjectiveChallenge {
+  background: #f0f0f0;
+  color: #000000;
+}
+
+.taskType.easterEgg {
+  background: #f0f0f0;
+  color: #000000;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.statusBadge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusBadge.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statusBadge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.statusBadge.notSubmitted {
+  background: #f5f5f5;
+  color: #666666;
+}
+
+.submitButton {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  transition: background-color 0.2s;
+}
+
+.submitButton:hover {
+  background: #333333;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666666;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.emptyDescription {
+  font-size: 0.875rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.spinner {
+  border: 3px solid #f5f5f5;
+  border-top: 3px solid #000000;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.refreshButton {
+  background: none;
+  border: 1px solid #cccccc;
+  color: #666666;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.refreshButton:hover {
+  background: #f5f5f5;
+  border-color: #999999;
+}
+
+.taskPoints {
+  font-size: 0.875rem;
+  color: #059669;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.taskNote {
+  font-size: 0.875rem;
+  color: #666666;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .main {
+    padding: 1rem;
+  }
+
+  .taskGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
