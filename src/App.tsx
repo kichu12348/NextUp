@@ -1,16 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from './store';
-import { authAPI } from './services/api';
-import { useEffect, useState } from 'react';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Task from './pages/Task';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminSubmissions from './pages/AdminSubmissions';
-import Leaderboard from './pages/Leaderboard';
-import './App.css';
-import { FaHeart } from 'react-icons/fa';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useAuthStore } from "./store";
+import { authAPI } from "./services/api";
+import { useEffect, useState } from "react";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Task from "./pages/Task";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminSubmissions from "./pages/AdminSubmissions";
+import AdminManageUsers from "./pages/AdminManageUsers";
+import Leaderboard from "./pages/Leaderboard";
+import "./App.css";
+import { FaHeart } from "react-icons/fa";
 
 // App-level auth state
 interface AppAuthState {
@@ -24,14 +30,14 @@ function App() {
   const [appAuth, setAppAuth] = useState<AppAuthState>({
     isInitialized: false,
     participantAuth: false,
-    adminAuth: false
+    adminAuth: false,
   });
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const participantToken = localStorage.getItem('participant-token');
-      const adminToken = localStorage.getItem('admin-token');
-      
+      const participantToken = localStorage.getItem("participant-token");
+      const adminToken = localStorage.getItem("admin-token");
+
       let participantValid = false;
       let adminValid = false;
 
@@ -41,8 +47,8 @@ function App() {
           const isValid = await validateToken();
           participantValid = isValid;
         } catch (error) {
-          console.error('Participant token validation failed:', error);
-          localStorage.removeItem('participant-token');
+          console.error("Participant token validation failed:", error);
+          localStorage.removeItem("participant-token");
           logout();
         }
       }
@@ -53,138 +59,180 @@ function App() {
           const response = await authAPI.validateAdminToken();
           adminValid = response.data.valid;
           if (!adminValid) {
-            localStorage.removeItem('admin-token');
+            localStorage.removeItem("admin-token");
           }
         } catch (error) {
-          console.error('Admin token validation failed:', error);
-          localStorage.removeItem('admin-token');
+          console.error("Admin token validation failed:", error);
+          localStorage.removeItem("admin-token");
         }
       }
 
       setAppAuth({
         isInitialized: true,
         participantAuth: participantValid,
-        adminAuth: adminValid
+        adminAuth: adminValid,
       });
     };
 
     initializeAuth();
   }, [validateToken, logout]);
 
+  const handleAdminLogin = () => {
+    setAppAuth((prev) => ({ ...prev, adminAuth: true }));
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem("admin-token");
+    setAppAuth((prev) => ({ ...prev, adminAuth: false }));
+  };
+
   // Show loading screen during initial auth check
   if (!appAuth.isInitialized) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        backgroundColor: 'white',
-        color: 'black'
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "white",
+          color: "black",
+        }}
+      >
         <div>Loading...</div>
       </div>
     );
   }
 
-// Protected Route Component - now just checks auth state
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
-};
+  // Protected Route Component - now just checks auth state
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated } = useAuthStore();
+    return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  };
 
-// Admin Protected Route Component - uses app-level admin auth
-const AdminProtectedRoute = ({ children, adminAuth }: { children: React.ReactNode; adminAuth: boolean }) => {
-  return adminAuth ? <>{children}</> : <Navigate to="/admin/login" replace />;
-};
+  // Admin Protected Route Component - uses app-level admin auth
+  const AdminProtectedRoute = ({
+    children,
+    adminAuth,
+  }: {
+    children: React.ReactNode;
+    adminAuth: boolean;
+  }) => {
+    return adminAuth ? <>{children}</> : <Navigate to="/admin/login" replace />;
+  };
 
-// Admin Public Route Component - uses app-level admin auth
-const AdminPublicRoute = ({ children, adminAuth }: { children: React.ReactNode; adminAuth: boolean }) => {
-  return !adminAuth ? <>{children}</> : <Navigate to="/admin" replace />;
-};
+  // Admin Public Route Component - uses app-level admin auth
+  const AdminPublicRoute = ({
+    children,
+    adminAuth,
+  }: {
+    children: React.ReactNode;
+    adminAuth: boolean;
+  }) => {
+    return !adminAuth ? <>{children}</> : <Navigate to="/admin" replace />;
+  };
 
-// Public Route Component - checks participant auth
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
-  return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" replace />;
-};
+  // Public Route Component - checks participant auth
+  const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated } = useAuthStore();
+    return !isAuthenticated ? (
+      <>{children}</>
+    ) : (
+      <Navigate to="/dashboard" replace />
+    );
+  };
 
   return (
     <>
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Public Routes */}
-          <Route 
-            path="/login" 
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } 
-          />
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
 
-          {/* Public Leaderboard Route */}
-          <Route path="/leaderboard" element={<Leaderboard />} />
+            {/* Public Leaderboard Route */}
+            <Route path="/leaderboard" element={<Leaderboard />} />
 
-          {/* Admin Routes */}
-          <Route 
-            path="/admin/login" 
-            element={
-              <AdminPublicRoute adminAuth={appAuth.adminAuth}>
-                <AdminLogin />
-              </AdminPublicRoute>
-            } 
-          />
-          
-          <Route 
-            path="/admin" 
-            element={
-              <AdminProtectedRoute adminAuth={appAuth.adminAuth}>
-                <AdminDashboard />
-              </AdminProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/admin/submissions" 
-            element={
-              <AdminProtectedRoute adminAuth={appAuth.adminAuth}>
-                <AdminSubmissions />
-              </AdminProtectedRoute>
-            } 
-          />
+            {/* Admin Routes */}
+            <Route
+              path="/admin/login"
+              element={
+                <AdminPublicRoute adminAuth={appAuth.adminAuth}>
+                  <AdminLogin 
+                    onLoginSuccess={handleAdminLogin}
+                  />
+                </AdminPublicRoute>
+              }
+            />
 
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/task" 
-            element={
-              <ProtectedRoute>
-                <Task />
-              </ProtectedRoute>
-            } 
-          />
+            <Route
+              path="/admin"
+              element={
+                <AdminProtectedRoute adminAuth={appAuth.adminAuth}>
+                  <AdminDashboard 
+                    onLogout={handleAdminLogout}
+                  />
+                </AdminProtectedRoute>
+              }
+            />
 
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+            <Route
+              path="/admin/submissions"
+              element={
+                <AdminProtectedRoute adminAuth={appAuth.adminAuth}>
+                  <AdminSubmissions />
+                </AdminProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/participants"
+              element={
+                <AdminProtectedRoute adminAuth={appAuth.adminAuth}>
+                  <AdminManageUsers />
+                </AdminProtectedRoute>
+              }
+            />
+
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/task"
+              element={
+                <ProtectedRoute>
+                  <Task />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </div>
+      </Router>
+      <div style={{ textAlign: "center", margin: "20px 0" }}>
+        <p>
+          Made Wid <FaHeart color="red" /> by Kichu
+        </p>
       </div>
-    </Router>
-    <div style={{ textAlign: 'center', margin: '20px 0' }}>
-      <p>Made Wid <FaHeart color='red'/> by Kichu</p>
-    </div>
     </>
   );
 }

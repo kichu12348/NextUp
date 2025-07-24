@@ -192,7 +192,6 @@ const Dashboard = () => {
         <div className={styles.headerLeft}>
           <div className={styles.logo}>NextUp</div>
           <div className={styles.userInfo}>
-            <div className={styles.userName}>{user.name}</div>
             <div className={styles.userEmail}>{user.email}</div>
           </div>
         </div>
@@ -223,9 +222,9 @@ const Dashboard = () => {
 
       <main className={styles.main}>
         <div className={styles.welcomeSection}>
-          <h1 className={styles.welcomeTitle}>Welcome back, {user.name}!</h1>
+          <h1 className={styles.welcomeTitle}>Hellow, {user.name}!</h1>
           <p className={styles.welcomeSubtitle}>
-            Continue your learning journey and complete tasks to earn points.
+            Continue your journey and complete tasks to earn points.
           </p>
         </div>
 

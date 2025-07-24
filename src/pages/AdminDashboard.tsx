@@ -1,21 +1,28 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaTasks, FaUsers, FaChartBar, FaSignOutAlt } from 'react-icons/fa';
-import { adminAPI } from '../services/api';
-import styles from './AdminDashboard.module.css';
-import { IoClose } from 'react-icons/io5';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FaPlus,
+  FaTasks,
+  FaUsers,
+  FaChartBar,
+  FaSignOutAlt,
+} from "react-icons/fa";
+import { adminAPI } from "../services/api";
+import styles from "./AdminDashboard.module.css";
+import { IoClose } from "react-icons/io5";
+import { BsFileEarmarkSpreadsheetFill } from "react-icons/bs";
 
 interface Task {
   id: string;
   name: string;
   description: string;
-  type: 'CHALLENGE' | 'MENTOR_SESSION' | 'SUBJECTIVE_CHALLENGE' | 'EASTER_EGG';
+  type: "CHALLENGE" | "MENTOR_SESSION" | "SUBJECTIVE_CHALLENGE" | "EASTER_EGG";
   points: number;
   isVariablePoints: boolean;
   createdAt: string;
 }
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +30,7 @@ const AdminDashboard = () => {
     totalTasks: 0,
     totalParticipants: 0,
     totalSubmissions: 0,
-    pendingSubmissions: 0
+    pendingSubmissions: 0,
   });
 
   const navigate = useNavigate();
@@ -38,19 +45,19 @@ const AdminDashboard = () => {
       // Load tasks and stats
       const [tasksResponse, statsResponse] = await Promise.all([
         adminAPI.getTasks(),
-        adminAPI.getStats()
+        adminAPI.getStats(),
       ]);
 
       setTasks(tasksResponse.data.tasks || []);
       setStats(statsResponse.data);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      console.error("Failed to load dashboard data:", error);
       // Fallback to mock data
       setStats({
         totalTasks: 0,
         totalParticipants: 0,
         totalSubmissions: 0,
-        pendingSubmissions: 0
+        pendingSubmissions: 0,
       });
     } finally {
       setIsLoading(false);
@@ -58,8 +65,26 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('admin-token');
-    navigate('/admin/login');
+    localStorage.removeItem("admin-token");
+    onLogout();
+    navigate("/admin/login");
+  };
+
+  const handleExcelExport = async () => {
+    try {
+      const response = await adminAPI.getExcelSheet();
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "participants.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      //clean up
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export data:", error);
+    }
   };
 
   return (
@@ -67,10 +92,16 @@ const AdminDashboard = () => {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>Admin Dashboard</h1>
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            <FaSignOutAlt />
-            Logout
-          </button>
+          <div className={styles.headerActions}>
+            <button onClick={handleLogout} className={styles.logoutButton}>
+              <FaSignOutAlt />
+              Logout
+            </button>
+            <button onClick={handleExcelExport} className={styles.logoutButton}>
+              Export Data
+              <BsFileEarmarkSpreadsheetFill />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -119,22 +150,22 @@ const AdminDashboard = () => {
         <div className={styles.actionsSection}>
           <h2 className={styles.sectionTitle}>Quick Actions</h2>
           <div className={styles.actionGrid}>
-            <button 
-              onClick={() => navigate('/admin/submissions')}
+            <button
+              onClick={() => navigate("/admin/submissions")}
               className={styles.actionButton}
             >
               <FaTasks />
               Review Submissions
             </button>
-            <button 
-              onClick={() => navigate('/admin/participants')}
+            <button
+              onClick={() => navigate("/admin/participants")}
               className={styles.actionButton}
             >
               <FaUsers />
               Manage Participants
             </button>
-            <button 
-              onClick={() => navigate('/leaderboard')}
+            <button
+              onClick={() => navigate("/leaderboard")}
               className={styles.actionButton}
             >
               <FaChartBar />
@@ -147,7 +178,7 @@ const AdminDashboard = () => {
         <div className={styles.tasksSection}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recent Tasks</h2>
-            <button 
+            <button
               onClick={() => setShowCreateTask(true)}
               className={styles.createButton}
             >
@@ -155,7 +186,7 @@ const AdminDashboard = () => {
               Create Task
             </button>
           </div>
-          
+
           {isLoading ? (
             <div className={styles.loading}>Loading...</div>
           ) : (
@@ -167,18 +198,24 @@ const AdminDashboard = () => {
                   <p>Create your first task to get started</p>
                 </div>
               ) : (
-                tasks.map(task => (
+                tasks.map((task) => (
                   <div key={task.id} className={styles.taskCard}>
                     <div className={styles.taskHeader}>
                       <h3 className={styles.taskName}>{task.name}</h3>
-                      <span className={`${styles.taskType} ${styles[task.type.toLowerCase()]}`}>
-                        {task.type.replace('_', ' ')}
+                      <span
+                        className={`${styles.taskType} ${
+                          styles[task.type.toLowerCase()]
+                        }`}
+                      >
+                        {task.type.replace("_", " ")}
                       </span>
                     </div>
                     <p className={styles.taskDescription}>{task.description}</p>
                     <div className={styles.taskFooter}>
                       <span className={styles.taskPoints}>
-                        {task.isVariablePoints ? 'Variable Points' : `${task.points} points`}
+                        {task.isVariablePoints
+                          ? "Variable Points"
+                          : `${task.points} points`}
                       </span>
                       <span className={styles.taskDate}>
                         {new Date(task.createdAt).toLocaleDateString()}
@@ -194,7 +231,7 @@ const AdminDashboard = () => {
 
       {/* Create Task Modal */}
       {showCreateTask && (
-        <CreateTaskModal 
+        <CreateTaskModal
           onClose={() => setShowCreateTask(false)}
           onTaskCreated={loadDashboardData}
         />
@@ -211,29 +248,29 @@ interface CreateTaskModalProps {
 
 const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'CHALLENGE' as const,
+    name: "",
+    description: "",
+    type: "CHALLENGE" as const,
     points: 0,
-    isVariablePoints: false
+    isVariablePoints: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.description.trim()) {
-      setError('Please fill in all required fields');
+      setError("Please fill in all required fields");
       return;
     }
 
     if (!formData.isVariablePoints && formData.points <= 0) {
-      setError('Please enter a valid point value');
+      setError("Please enter a valid point value");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Create task via API
@@ -241,7 +278,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
       onTaskCreated();
       onClose();
     } catch (error) {
-      setError('Failed to create task. Please try again.');
+      setError("Failed to create task. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -257,11 +294,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
           </button>
         </div>
 
-        {error && (
-          <div className={styles.error}>
-            {error}
-          </div>
-        )}
+        {error && <div className={styles.error}>{error}</div>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
@@ -269,7 +302,9 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               className={styles.input}
               placeholder="Enter task name"
               required
@@ -280,7 +315,9 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             <label className={styles.label}>Description *</label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               className={styles.textarea}
               placeholder="Describe the task requirements"
               rows={4}
@@ -292,7 +329,9 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             <label className={styles.label}>Task Type</label>
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+              onChange={(e) =>
+                setFormData({ ...formData, type: e.target.value as any })
+              }
               className={styles.select}
             >
               <option value="CHALLENGE">Challenge</option>
@@ -307,7 +346,12 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
               <input
                 type="checkbox"
                 checked={formData.isVariablePoints}
-                onChange={(e) => setFormData({ ...formData, isVariablePoints: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    isVariablePoints: e.target.checked,
+                  })
+                }
                 className={styles.checkbox}
               />
               Variable Points (assign points manually per submission)
@@ -319,8 +363,13 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
               <label className={styles.label}>Fixed Points</label>
               <input
                 type="number"
-                value={formData.points  || ''}
-                onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) || 0 })}
+                value={formData.points || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    points: parseInt(e.target.value) || 0,
+                  })
+                }
                 className={styles.input}
                 placeholder="Enter point value"
                 min="1"
@@ -342,7 +391,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
               className={styles.submitButton}
               disabled={isLoading}
             >
-              {isLoading ? 'Creating...' : 'Create Task'}
+              {isLoading ? "Creating..." : "Create Task"}
             </button>
           </div>
         </form>

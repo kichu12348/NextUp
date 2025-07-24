@@ -94,6 +94,8 @@ export const adminAPI = {
     api.get('/admin/submissions', { params }),
   updateSubmission: (id: string, data: { status?: 'PENDING' | 'APPROVED' | 'REJECTED'; points?: number; note?: string }) =>
     api.patch(`/admin/submissions/${id}`, data),
+  getExcelSheet: () => api.get("/admin/export/excel", { responseType: 'blob' }),
+  getParticipants: () => api.get("/admin/export/participants"),
 };
 
 export const submissionAPI = {

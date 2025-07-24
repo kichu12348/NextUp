@@ -1,16 +1,22 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaExclamationTriangle, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
-import { authAPI } from '../services/api';
-import styles from './AdminLogin.module.css';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  FaEnvelope,
+  FaLock,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaArrowLeft,
+} from "react-icons/fa";
+import { authAPI } from "../services/api";
+import styles from "./AdminLogin.module.css";
 
-const AdminLogin = () => {
-  const [step, setStep] = useState<'email' | 'otp'>('email');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+const AdminLogin = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
+  const [step, setStep] = useState<"email" | "otp">("email");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
 
   const navigate = useNavigate();
@@ -19,9 +25,9 @@ const AdminLogin = () => {
 
   useEffect(() => {
     // Check if admin is already authenticated
-    const adminToken = localStorage.getItem('admin-token');
+    const adminToken = localStorage.getItem("admin-token");
     if (adminToken) {
-      navigate('/admin');
+      navigate("/admin");
       return;
     }
 
@@ -44,21 +50,21 @@ const AdminLogin = () => {
 
   const handleEmailSubmitForPassedEmail = async (emailAddress: string) => {
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       await authAPI.requestOTP({ email: emailAddress.trim().toLowerCase() });
-      setSuccess('OTP sent to your email!');
-      setStep('otp');
+      setSuccess("OTP sent to your email!");
+      setStep("otp");
       setResendTimer(60);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(""), 3000);
     } catch (error: any) {
       if (error.response?.status === 401) {
-        setError('Access denied: Admin account not found for this email.');
+        setError("Access denied: Admin account not found for this email.");
       } else if (error.response?.status === 400) {
-        setError('Please enter a valid email address.');
+        setError("Please enter a valid email address.");
       } else {
-        setError('Failed to send OTP. Please try again.');
+        setError("Failed to send OTP. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -68,7 +74,7 @@ const AdminLogin = () => {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Please enter your email');
+      setError("Please enter your email");
       return;
     }
 
@@ -89,38 +95,39 @@ const AdminLogin = () => {
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
       otpRefs.current[index - 1]?.focus();
     }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const otpCode = otp.join('');
-    
+    const otpCode = otp.join("");
+
     if (otpCode.length !== 6) {
-      setError('Please enter the complete 6-digit OTP');
+      setError("Please enter the complete 6-digit OTP");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await authAPI.verifyOTP({ 
-        email: email.trim().toLowerCase(), 
-        otp: otpCode 
+      const response = await authAPI.verifyOTP({
+        email: email.trim().toLowerCase(),
+        otp: otpCode,
       });
-      
+
       // Store admin token
-      localStorage.setItem('admin-token', response.data.token);
-      setSuccess('Login successful!');
-      setTimeout(() => navigate('/admin'), 1000);
+      localStorage.setItem("admin-token", response.data.token);
+      setSuccess("Login successful!");
+      setTimeout(() => navigate("/admin"), 1000);
+      onLoginSuccess();
     } catch (error: any) {
       if (error.response?.status === 401) {
-        setError('Invalid or expired OTP. Please try again.');
+        setError("Invalid or expired OTP. Please try again.");
       } else {
-        setError('Failed to verify OTP. Please try again.');
+        setError("Failed to verify OTP. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -131,15 +138,15 @@ const AdminLogin = () => {
     if (resendTimer > 0) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       await authAPI.requestOTP({ email: email.trim().toLowerCase() });
-      setSuccess('OTP sent successfully!');
+      setSuccess("OTP sent successfully!");
       setResendTimer(60);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(""), 3000);
     } catch (error: any) {
-      setError('Failed to resend OTP. Please try again.');
+      setError("Failed to resend OTP. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -151,10 +158,9 @@ const AdminLogin = () => {
         <div className={styles.header}>
           <h1 className={styles.title}>Admin Portal</h1>
           <p className={styles.subtitle}>
-            {step === 'email' 
-              ? 'Enter your admin email to continue' 
-              : 'Enter the 6-digit OTP sent to your email'
-            }
+            {step === "email"
+              ? "Enter your admin email to continue"
+              : "Enter the 6-digit OTP sent to your email"}
           </p>
         </div>
 
@@ -172,7 +178,7 @@ const AdminLogin = () => {
           </div>
         )}
 
-        {step === 'email' ? (
+        {step === "email" ? (
           <form onSubmit={handleEmailSubmit} className={styles.form}>
             <div className={styles.inputGroup}>
               <label htmlFor="email" className={styles.label}>
@@ -195,18 +201,14 @@ const AdminLogin = () => {
               className={styles.button}
               disabled={isLoading}
             >
-              {isLoading ? (
-                <div className={styles.spinner} />
-              ) : (
-                <FaEnvelope />
-              )}
-              {isLoading ? 'Sending...' : 'Send OTP'}
+              {isLoading ? <div className={styles.spinner} /> : <FaEnvelope />}
+              {isLoading ? "Sending..." : "Send OTP"}
             </button>
 
             <div className={styles.backToUser}>
               <button
                 type="button"
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 className={styles.backButton}
               >
                 <FaArrowLeft />
@@ -217,7 +219,7 @@ const AdminLogin = () => {
         ) : (
           <>
             <button
-              onClick={() => setStep('email')}
+              onClick={() => setStep("email")}
               className={styles.backButton}
             >
               <FaArrowLeft />
@@ -226,9 +228,7 @@ const AdminLogin = () => {
 
             <form onSubmit={handleOtpSubmit} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label className={styles.label}>
-                  Verification Code
-                </label>
+                <label className={styles.label}>Verification Code</label>
                 <div className={styles.otpContainer}>
                   {otp.map((digit, index) => (
                     <input
@@ -255,24 +255,22 @@ const AdminLogin = () => {
                 className={styles.button}
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  <div className={styles.spinner} />
-                ) : (
-                  <FaLock />
-                )}
-                {isLoading ? 'Verifying...' : 'Verify & Login'}
+                {isLoading ? <div className={styles.spinner} /> : <FaLock />}
+                {isLoading ? "Verifying..." : "Verify & Login"}
               </button>
 
               <div className={styles.resendSection}>
                 <p className={styles.resendText}>
-                  Didn't receive the code?{' '}
+                  Didn't receive the code?{" "}
                   <button
                     type="button"
                     onClick={handleResendOtp}
                     className={styles.resendButton}
                     disabled={resendTimer > 0 || isLoading}
                   >
-                    {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                    {resendTimer > 0
+                      ? `Resend in ${resendTimer}s`
+                      : "Resend OTP"}
                   </button>
                 </p>
               </div>
