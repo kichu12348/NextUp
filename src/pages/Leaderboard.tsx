@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaTrophy, FaSync } from 'react-icons/fa';
-import { leaderboardAPI } from '../services/api';
-import socketService from '../services/socket';
-import styles from './Leaderboard.module.css';
-import { IoIosArrowBack } from 'react-icons/io';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaTrophy, FaSync } from "react-icons/fa";
+import { leaderboardAPI } from "../services/api";
+import socketService from "../services/socket";
+import styles from "./Leaderboard.module.css";
+import { IoIosArrowBack } from "react-icons/io";
 
 interface LeaderboardEntry {
   id: string;
@@ -28,17 +28,20 @@ const Leaderboard = () => {
     page: 1,
     limit: 50,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   });
 
   const navigate = useNavigate();
+  const handleBack = () => {
+    navigate(-1);
+  };
 
   useEffect(() => {
     loadLeaderboard();
-    
+
     // Connect to socket for real-time updates
     socketService.connect();
-    
+
     // Subscribe to leaderboard updates
     socketService.subscribeToLeaderboard((data) => {
       if (data.leaderboard && data.pagination) {
@@ -57,14 +60,17 @@ const Leaderboard = () => {
   const loadLeaderboard = async () => {
     setIsLoading(true);
     try {
-      const response = await leaderboardAPI.get(pagination.page, pagination.limit);
+      const response = await leaderboardAPI.get(
+        pagination.page,
+        pagination.limit
+      );
       const participants = response.data.leaderboard || [];
 
       // The backend now handles ranking with tie logic, so we use the ranks as provided
       setLeaderboard(participants);
       setPagination(response.data.pagination || pagination);
     } catch (error) {
-      console.error('Failed to load leaderboard:', error);
+      console.error("Failed to load leaderboard:", error);
     } finally {
       setIsLoading(false);
     }
@@ -81,23 +87,29 @@ const Leaderboard = () => {
     if (rank === 1) return styles.firstPlace;
     if (rank === 2) return styles.secondPlace;
     if (rank === 3) return styles.thirdPlace;
-    return '';
+    return "";
   };
 
   return (
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
-        <button onClick={() => navigate(-1)} className={styles.backButton}>
-          <IoIosArrowBack className={styles.backIcon} />
+        <button onClick={handleBack} className={styles.backButton}>
+          <div className={styles.backIcon}>
+            <IoIosArrowBack />
+          </div>
           Back
         </button>
         <h1 className={styles.title}>
           <FaTrophy className={styles.titleIcon} />
           Leaderboard
         </h1>
-        <button onClick={loadLeaderboard} className={styles.refreshButton} disabled={isLoading}>
-          <FaSync className={isLoading ? styles.spinning : ''} />
+        <button
+          onClick={loadLeaderboard}
+          className={styles.refreshButton}
+          disabled={isLoading}
+        >
+          <FaSync className={isLoading ? styles.spinning : ""} />
         </button>
       </header>
 
@@ -118,29 +130,34 @@ const Leaderboard = () => {
           <>
             <div className={styles.leaderboard}>
               {leaderboard.map((participant) => {
-                const isTied = leaderboard.some((other) => 
-                  other.id !== participant.id && other.rank === participant.rank
+                const isTied = leaderboard.some(
+                  (other) =>
+                    other.id !== participant.id &&
+                    other.rank === participant.rank
                 );
-                
+
                 return (
-                  <div 
-                    key={participant.id} 
-                    className={`${styles.card} ${getRankClass(participant.rank!)}`}
+                  <div
+                    key={participant.id}
+                    className={`${styles.card} ${getRankClass(
+                      participant.rank!
+                    )}`}
                   >
                     <div className={styles.rank}>
                       {getRankIcon(participant.rank!)}
                     </div>
-                    
+
                     <div className={styles.info}>
                       <h3 className={styles.name}>{participant.name}</h3>
                       <div className={styles.meta}>
                         <span className={styles.tasks}>
-                          {participant.taskCount} task{participant.taskCount !== 1 ? 's' : ''}
+                          {participant.taskCount} task
+                          {participant.taskCount !== 1 ? "s" : ""}
                         </span>
                         {isTied && <span className={styles.tied}>Tied</span>}
                       </div>
                     </div>
-                    
+
                     <div className={styles.points}>
                       {participant.totalPoints}
                     </div>
@@ -154,7 +171,9 @@ const Leaderboard = () => {
               <div className={styles.pagination}>
                 <button
                   disabled={pagination.page === 1}
-                  onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                  onClick={() =>
+                    setPagination({ ...pagination, page: pagination.page - 1 })
+                  }
                   className={styles.pageButton}
                 >
                   Previous
@@ -164,7 +183,9 @@ const Leaderboard = () => {
                 </span>
                 <button
                   disabled={pagination.page === pagination.totalPages}
-                  onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                  onClick={() =>
+                    setPagination({ ...pagination, page: pagination.page + 1 })
+                  }
                   className={styles.pageButton}
                 >
                   Next
