@@ -165,9 +165,7 @@ function App() {
               path="/admin/login"
               element={
                 <AdminPublicRoute adminAuth={appAuth.adminAuth}>
-                  <AdminLogin 
-                    onLoginSuccess={handleAdminLogin}
-                  />
+                  <AdminLogin onLoginSuccess={handleAdminLogin} />
                 </AdminPublicRoute>
               }
             />
@@ -176,9 +174,7 @@ function App() {
               path="/admin"
               element={
                 <AdminProtectedRoute adminAuth={appAuth.adminAuth}>
-                  <AdminDashboard 
-                    onLogout={handleAdminLogout}
-                  />
+                  <AdminDashboard onLogout={handleAdminLogout} />
                 </AdminProtectedRoute>
               }
             />
@@ -226,13 +222,13 @@ function App() {
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
+          <div style={{ textAlign: "center", margin: "20px 0" }}>
+            <p>
+              Made Wid <FaHeart color="red" /> by Kichu
+            </p>
+          </div>
         </div>
       </Router>
-      <div style={{ textAlign: "center", margin: "20px 0" }}>
-        <p>
-          Made Wid <FaHeart color="red" /> by Kichu
-        </p>
-      </div>
     </>
   );
 }
