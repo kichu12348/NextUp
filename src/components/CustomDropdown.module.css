@@ -1,0 +1,129 @@
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownToggle {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.dropdownToggle:hover:not(.disabled) {
+  border-color: #999999;
+}
+
+.dropdownToggle.open {
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.dropdownToggle.disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.selectedValue {
+  flex: 1;
+  text-align: left;
+  color: #000000;
+}
+
+.selectedValue:empty::before {
+  content: attr(data-placeholder);
+  color: #999999;
+}
+
+.arrow {
+  color: #666666;
+  font-size: 0.875rem;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.dropdownToggle.open .arrow {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownOption {
+  padding: 0.75rem;
+  cursor: pointer;
+  color: #000000;
+  transition: all 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdownOption:last-child {
+  border-bottom: none;
+}
+
+.dropdownOption:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdownOption.selected {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.dropdownOption.selected:hover {
+  background-color: #333333;
+}
+
+/* Scrollbar styling for the dropdown menu */
+.dropdownMenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdownMenu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dropdownMenu::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 3px;
+}
+
+.dropdownMenu::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}

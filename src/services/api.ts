@@ -56,6 +56,7 @@ export interface OTPRequestData {
   email: string;
   name?: string;
   college?: string;
+  gender?: string;
 }
 
 export interface OTPVerifyData {

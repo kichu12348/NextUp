@@ -84,6 +84,20 @@
   cursor: not-allowed;
 }
 
+/* Custom dropdown overrides to match the input styling */
+.input :global(.dropdown) {
+  width: 100%;
+}
+
+.input :global(.dropdownToggle) {
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  background-color: #ffffff;
+  color: #000000;
+}
+
 .button {
   background-color: #000000;
   color: white;

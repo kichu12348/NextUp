@@ -1,24 +1,32 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaExclamationTriangle, FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
-import { participantAPI, authAPI } from '../services/api';
-import { useAuthStore } from '../store';
-import styles from './Login.module.css';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FaEnvelope,
+  FaLock,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaArrowLeft,
+} from "react-icons/fa";
+import { participantAPI, authAPI } from "../services/api";
+import { useAuthStore } from "../store";
+import { CustomDropdown } from "../components";
+import styles from "./Login.module.css";
 
 const Login = () => {
-  const [step, setStep] = useState<'email' | 'details' | 'otp'>('email');
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [college, setCollege] = useState('');
+  const [step, setStep] = useState<"email" | "details" | "otp">("email");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [college, setCollege] = useState("");
+  const [gender, setGender] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
 
   const navigate = useNavigate();
-  const login  = useAuthStore(s => s.login);
+  const login = useAuthStore((s) => s.login);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -31,56 +39,60 @@ const Login = () => {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Please enter your email');
+      setError("Please enter your email");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // First check if this is an admin email without sending OTP
       try {
-        const adminCheckResponse = await authAPI.checkAdmin(email.trim().toLowerCase());
+        const adminCheckResponse = await authAPI.checkAdmin(
+          email.trim().toLowerCase()
+        );
         if (adminCheckResponse.data.isAdmin) {
           // This is an admin email, redirect to admin login without auto-sending OTP
-          navigate('/admin/login', { 
-            state: { email: email.trim().toLowerCase(), skipAutoOTP: true } 
+          navigate("/admin/login", {
+            state: { email: email.trim().toLowerCase(), skipAutoOTP: true },
           });
-          localStorage.removeItem('participant-token'); // Clear participant token if any
-          localStorage.removeItem('admin-token'); // Clear admin token if any
+          localStorage.removeItem("participant-token"); // Clear participant token if any
+          localStorage.removeItem("admin-token"); // Clear admin token if any
           return;
         }
       } catch (adminError: any) {
         // If admin check fails, continue with participant flow
-        console.log('Admin check failed, proceeding with participant flow');
+        console.log("Admin check failed, proceeding with participant flow");
       }
 
       // Proceed with participant flow
-      const response = await participantAPI.requestOTP({ email: email.trim().toLowerCase() });
-      localStorage.removeItem('admin-token'); // Clear admin token if any
-      localStorage.removeItem('participant-token'); // Clear participant token if any
-      
+      const response = await participantAPI.requestOTP({
+        email: email.trim().toLowerCase(),
+      });
+      localStorage.removeItem("admin-token"); // Clear admin token if any
+      localStorage.removeItem("participant-token"); // Clear participant token if any
+
       if (response.data.isNewUser) {
         // New user - need to collect name and college first
         setIsNewUser(true);
-        setStep('details');
+        setStep("details");
       } else {
         // Existing user - OTP sent
-        setSuccess('OTP sent to your email!');
-        setStep('otp');
+        setSuccess("OTP sent to your email!");
+        setStep("otp");
         setResendTimer(60);
-        setTimeout(() => setSuccess(''), 3000);
+        setTimeout(() => setSuccess(""), 3000);
       }
     } catch (error: any) {
       if (error.response?.status === 400 && error.response?.data?.isNewUser) {
         // New user needs to provide name and college
         setIsNewUser(true);
-        setStep('details');
+        setStep("details");
       } else if (error.response?.status === 400) {
-        setError('Please enter a valid email address.');
+        setError("Please enter a valid email address.");
       } else {
-        setError('Failed to process request. Please try again.');
+        setError("Failed to process request. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -90,30 +102,35 @@ const Login = () => {
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Please enter your name');
+      setError("Please enter your name");
       return;
     }
     if (!college.trim()) {
-      setError('Please enter your college name');
+      setError("Please enter your college name");
+      return;
+    }
+    if (!gender.trim()) {
+      setError("Please select your gender");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Request OTP with name and college for new user
-      await participantAPI.requestOTP({ 
+      await participantAPI.requestOTP({
         email: email.trim().toLowerCase(),
         name: name.trim(),
-        college: college.trim()
+        college: college.trim(),
+        gender: gender.trim(),
       });
-      setSuccess('OTP sent to your email!');
-      setStep('otp');
+      setSuccess("OTP sent to your email!");
+      setStep("otp");
       setResendTimer(60);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(""), 3000);
     } catch (error: any) {
-      setError('Failed to send OTP. Please try again.');
+      setError("Failed to send OTP. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -133,40 +150,40 @@ const Login = () => {
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
       otpRefs.current[index - 1]?.focus();
     }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const otpCode = otp.join('');
-    
+    const otpCode = otp.join("");
+
     if (otpCode.length !== 6) {
-      setError('Please enter the complete 6-digit OTP');
+      setError("Please enter the complete 6-digit OTP");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Verify OTP for participant
-      const response = await participantAPI.verifyOTP({ 
-        email: email.trim().toLowerCase(), 
-        otp: otpCode 
+      const response = await participantAPI.verifyOTP({
+        email: email.trim().toLowerCase(),
+        otp: otpCode,
       });
-      
+
       // Store participant token and login
-      localStorage.setItem('participant-token', response.data.token);
+      localStorage.setItem("participant-token", response.data.token);
       login(response.data.token, response.data.participant);
-      setSuccess('Login successful!');
-      setTimeout(() => navigate('/dashboard'), 1000);
+      setSuccess("Login successful!");
+      setTimeout(() => navigate("/dashboard"), 1000);
     } catch (error: any) {
       if (error.response?.status === 401) {
-        setError('Invalid or expired OTP. Please try again.');
+        setError("Invalid or expired OTP. Please try again.");
       } else {
-        setError('Failed to verify OTP. Please try again.');
+        setError("Failed to verify OTP. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -177,7 +194,7 @@ const Login = () => {
     if (resendTimer > 0) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Resend OTP for participant
@@ -185,13 +202,13 @@ const Login = () => {
       if (isNewUser && name) {
         requestData.name = name.trim();
       }
-      
+
       await participantAPI.requestOTP(requestData);
-      setSuccess('OTP sent successfully!');
+      setSuccess("OTP sent successfully!");
       setResendTimer(60);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(""), 3000);
     } catch (error: any) {
-      setError('Failed to resend OTP. Please try again.');
+      setError("Failed to resend OTP. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -203,12 +220,11 @@ const Login = () => {
         <div className={styles.header}>
           <h1 className={styles.title}>NextUp</h1>
           <p className={styles.subtitle}>
-            {step === 'email' 
-              ? 'Enter your email to login or create an account' 
-              : step === 'details'
-              ? 'Welcome! Please enter your details to continue'
-              : 'Enter the 6-digit OTP sent to your email'
-            }
+            {step === "email"
+              ? "Enter your email to login or create an account"
+              : step === "details"
+              ? "Welcome! Please enter your details to continue"
+              : "Enter the 6-digit OTP sent to your email"}
           </p>
         </div>
 
@@ -226,7 +242,7 @@ const Login = () => {
           </div>
         )}
 
-        {step === 'email' ? (
+        {step === "email" ? (
           <form onSubmit={handleEmailSubmit} className={styles.form}>
             <div className={styles.inputGroup}>
               <label htmlFor="email" className={styles.label}>
@@ -249,18 +265,14 @@ const Login = () => {
               className={styles.button}
               disabled={isLoading}
             >
-              {isLoading ? (
-                <div className={styles.spinner} />
-              ) : (
-                <FaEnvelope />
-              )}
-              {isLoading ? 'Verifying...' : 'Continue'}
+              {isLoading ? <div className={styles.spinner} /> : <FaEnvelope />}
+              {isLoading ? "Verifying..." : "Continue"}
             </button>
           </form>
-        ) : step === 'details' ? (
+        ) : step === "details" ? (
           <>
             <button
-              onClick={() => setStep('email')}
+              onClick={() => setStep("email")}
               className={styles.backButton}
             >
               <FaArrowLeft />
@@ -299,6 +311,23 @@ const Login = () => {
                   required
                 />
               </div>
+              <div className={styles.inputGroup}>
+                <label htmlFor="gender" className={styles.label}>
+                  Your Gender
+                </label>
+                <CustomDropdown
+                  options={[
+                    { value: "Male", label: "Male" },
+                    { value: "Female", label: "Female" },
+                  ]}
+                  value={gender}
+                  onChange={(value) => setGender(value)}
+                  placeholder="Select your gender"
+                  disabled={isLoading}
+                  className={styles.input}
+                  style={{ padding: 0, outline: "none", border: "none" }}
+                />
+              </div>
 
               <button
                 type="submit"
@@ -310,25 +339,23 @@ const Login = () => {
                 ) : (
                   <FaEnvelope />
                 )}
-                {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                {isLoading ? "Sending OTP..." : "Send OTP"}
               </button>
             </form>
           </>
         ) : (
           <>
             <button
-              onClick={() => setStep(isNewUser ? 'details' : 'email')}
+              onClick={() => setStep(isNewUser ? "details" : "email")}
               className={styles.backButton}
             >
               <FaArrowLeft />
-              Back to {isNewUser ? 'details' : 'email'}
+              Back to {isNewUser ? "details" : "email"}
             </button>
 
             <form onSubmit={handleOtpSubmit} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label className={styles.label}>
-                  Verification Code
-                </label>
+                <label className={styles.label}>Verification Code</label>
                 <div className={styles.otpContainer}>
                   {otp.map((digit, index) => (
                     <input
@@ -353,23 +380,19 @@ const Login = () => {
                 className={styles.button}
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  <div className={styles.spinner} />
-                ) : (
-                  <FaLock />
-                )}
-                {isLoading ? 'Verifying...' : 'Verify & Login'}
+                {isLoading ? <div className={styles.spinner} /> : <FaLock />}
+                {isLoading ? "Verifying..." : "Verify & Login"}
               </button>
             </form>
 
             <div className={styles.resendContainer}>
-              Didn't receive the code?{' '}
+              Didn't receive the code?{" "}
               <button
                 onClick={handleResendOtp}
                 className={styles.resendButton}
                 disabled={resendTimer > 0 || isLoading}
               >
-                {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
               </button>
             </div>
           </>
