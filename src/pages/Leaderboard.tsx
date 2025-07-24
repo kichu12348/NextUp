@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaTrophy, FaMedal, FaSync } from 'react-icons/fa';
+import { FaTrophy, FaSync } from 'react-icons/fa';
 import { leaderboardAPI } from '../services/api';
 import socketService from '../services/socket';
 import styles from './Leaderboard.module.css';
+import { IoIosArrowBack } from 'react-icons/io';
 
 interface LeaderboardEntry {
   id: string;
@@ -70,115 +71,82 @@ const Leaderboard = () => {
   };
 
   const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <FaTrophy className={styles.goldTrophy} />;
-      case 2:
-        return <FaMedal className={styles.silverMedal} />;
-      case 3:
-        return <FaMedal className={styles.bronzeMedal} />;
-      default:
-        return <span className={styles.rankNumber}>#{rank}</span>;
+    if (rank <= 3) {
+      return <FaTrophy className={styles.trophy} />;
     }
+    return <span className={styles.rankNumber}>{rank}</span>;
   };
 
   const getRankClass = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return styles.firstPlace;
-      case 2:
-        return styles.secondPlace;
-      case 3:
-        return styles.thirdPlace;
-      default:
-        return '';
-    }
+    if (rank === 1) return styles.firstPlace;
+    if (rank === 2) return styles.secondPlace;
+    if (rank === 3) return styles.thirdPlace;
+    return '';
   };
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <button onClick={() => navigate(-1)} className={styles.backButton}>
-            Dashboard
-          </button>
-          <div className={styles.titleSection}>
-            <FaTrophy className={styles.headerIcon} />
-            <h1 className={styles.title}>Leaderboard</h1>
-          </div>
-          <button onClick={loadLeaderboard} className={styles.refreshButton}>
-            <FaSync />
-            Refresh
-          </button>
-        </div>
-      </div>
+      {/* Header */}
+      <header className={styles.header}>
+        <button onClick={() => navigate(-1)} className={styles.backButton}>
+          <IoIosArrowBack className={styles.backIcon} />
+          Back
+        </button>
+        <h1 className={styles.title}>
+          <FaTrophy className={styles.titleIcon} />
+          Leaderboard
+        </h1>
+        <button onClick={loadLeaderboard} className={styles.refreshButton} disabled={isLoading}>
+          <FaSync className={isLoading ? styles.spinning : ''} />
+        </button>
+      </header>
 
-      <div className={styles.main}>
-        {/* Stats Section */}
-        {/* <div className={styles.statsSection}>
-          <div className={styles.statCard}>
-            <FaUsers className={styles.statIcon} />
-            <div className={styles.statContent}>
-              <h3 className={styles.statValue}>{pagination.total}</h3>
-              <p className={styles.statLabel}>Total Participants</p>
-            </div>
-          </div>
-        </div> */}
-
-        {/* Leaderboard */}
+      {/* Main Content */}
+      <main className={styles.main}>
         {isLoading ? (
-          <div className={styles.loading}>Loading leaderboard...</div>
+          <div className={styles.loading}>
+            <div className={styles.spinner}></div>
+            <p>Loading...</p>
+          </div>
+        ) : leaderboard.length === 0 ? (
+          <div className={styles.emptyState}>
+            <FaTrophy className={styles.emptyIcon} />
+            <h2>No participants yet</h2>
+            <p>Be the first to complete a task!</p>
+          </div>
         ) : (
           <>
-            <div className={styles.leaderboardContainer}>
-              {leaderboard.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <FaTrophy className={styles.emptyIcon} />
-                  <h3>No participants yet</h3>
-                  <p>Be the first to complete a task and claim the top spot!</p>
-                </div>
-              ) : (
-                <div className={styles.leaderboardList}>
-                  {leaderboard.map((participant, index) => {
-                    // Check if this participant is tied with others
-                    const isTied = leaderboard.some((other, otherIndex) => 
-                      otherIndex !== index && 
-                      other.rank === participant.rank
-                    );
+            <div className={styles.leaderboard}>
+              {leaderboard.map((participant) => {
+                const isTied = leaderboard.some((other) => 
+                  other.id !== participant.id && other.rank === participant.rank
+                );
+                
+                return (
+                  <div 
+                    key={participant.id} 
+                    className={`${styles.card} ${getRankClass(participant.rank!)}`}
+                  >
+                    <div className={styles.rank}>
+                      {getRankIcon(participant.rank!)}
+                    </div>
                     
-                    return (
-                      <div 
-                        key={participant.id} 
-                        className={`${styles.participantCard} ${getRankClass(participant.rank!)}`}
-                      >
-                        <div className={styles.rankSection}>
-                          {getRankIcon(participant.rank!)}
-                          {isTied && <span className={styles.tieIndicator}>TIED</span>}
-                        </div>
-                        
-                        <div className={styles.participantInfo}>
-                          <h3 className={styles.participantName}>{participant.name}</h3>
-                          <div className={styles.participantStats}>
-                            <span className={styles.tasks}>
-                              {participant.taskCount} task{participant.taskCount !== 1 ? 's' : ''} completed
-                            </span>
-                            {isTied && (
-                              <span className={styles.tieBreaker}>
-                                • Ranked by tasks, then name
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className={styles.pointsSection}>
-                          <span className={styles.points}>{participant.totalPoints}</span>
-                          <span className={styles.pointsLabel}>points</span>
-                        </div>
+                    <div className={styles.info}>
+                      <h3 className={styles.name}>{participant.name}</h3>
+                      <div className={styles.meta}>
+                        <span className={styles.tasks}>
+                          {participant.taskCount} task{participant.taskCount !== 1 ? 's' : ''}
+                        </span>
+                        {isTied && <span className={styles.tied}>Tied</span>}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                    
+                    <div className={styles.points}>
+                      {participant.totalPoints}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Pagination */}
@@ -192,7 +160,7 @@ const Leaderboard = () => {
                   Previous
                 </button>
                 <span className={styles.pageInfo}>
-                  Page {pagination.page} of {pagination.totalPages}
+                  {pagination.page} / {pagination.totalPages}
                 </span>
                 <button
                   disabled={pagination.page === pagination.totalPages}
@@ -205,15 +173,12 @@ const Leaderboard = () => {
             )}
           </>
         )}
-      </div>
+      </main>
 
       {/* Footer */}
-      <div className={styles.footer}>
-        <p>Rankings update in real-time as tasks are completed and approved.</p>
-        <p className={styles.tieBreakingRules}>
-          <strong>Tie-breaking:</strong> Participants with equal points are ranked by tasks completed, then alphabetically by name.
-        </p>
-      </div>
+      <footer className={styles.footer}>
+        <p>Rankings update in real-time</p>
+      </footer>
     </div>
   );
 };
