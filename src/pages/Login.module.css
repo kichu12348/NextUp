@@ -236,3 +236,22 @@
     transform: rotate(360deg);
   }
 }
+
+@media screen and (max-width: 768px) {
+  .loginCard {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .input, .button, .otpInput {
+    font-size: 0.875rem;
+  }
+}
