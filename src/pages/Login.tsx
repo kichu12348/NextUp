@@ -242,7 +242,7 @@ const Login = () => {
           </div>
         )}
 
-        {false ? (
+        {step === "email" ? (
           <form onSubmit={handleEmailSubmit} className={styles.form}>
             <div className={styles.inputGroup}>
               <label htmlFor="email" className={styles.label}>
@@ -269,7 +269,7 @@ const Login = () => {
               {isLoading ? "Verifying..." : "Continue"}
             </button>
           </form>
-        ) : false ? (
+        ) : step === "details" ? (
           <>
             <button
               onClick={() => setStep("email")}
