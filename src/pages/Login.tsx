@@ -57,8 +57,6 @@ const Login = () => {
           navigate("/admin/login", {
             state: { email: email.trim().toLowerCase(), skipAutoOTP: true },
           });
-          localStorage.removeItem("participant-token"); // Clear participant token if any
-          localStorage.removeItem("admin-token"); // Clear admin token if any
           return;
         }
       } catch (adminError: any) {
@@ -70,9 +68,6 @@ const Login = () => {
       const response = await participantAPI.requestOTP({
         email: email.trim().toLowerCase(),
       });
-      localStorage.removeItem("admin-token"); // Clear admin token if any
-      localStorage.removeItem("participant-token"); // Clear participant token if any
-
       if (response.data.isNewUser) {
         // New user - need to collect name and college first
         setIsNewUser(true);
