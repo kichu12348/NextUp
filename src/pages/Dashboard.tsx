@@ -190,7 +190,7 @@ const Dashboard = () => {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.logo}>NextUp</div>
+          <div className={styles.logo}>Beginner's League</div>
           <div className={styles.userInfo}>
             <div className={styles.userEmail}>{user.email}</div>
           </div>

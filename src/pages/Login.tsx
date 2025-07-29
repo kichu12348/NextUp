@@ -218,7 +218,7 @@ const Login = () => {
     <div className={styles.container}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <h1 className={styles.title}>NextUp</h1>
+          <h1 className={styles.title}>Beginner&apos;s League</h1>
           <p className={styles.subtitle}>
             {step === "email"
               ? "Enter your email to login or create an account"

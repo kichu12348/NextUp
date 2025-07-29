@@ -34,8 +34,9 @@
 }
 
 .title {
+  font-family: "Whyte Inktrap", sans-serif;
   font-size: 2rem;
-  font-weight: bold;
+  font-weight: normal;
   color: #000000;
   margin-bottom: 0.5rem;
 }
