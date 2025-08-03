@@ -7,7 +7,7 @@ import styles from './AdminSubmissions.module.css';
 interface Submission {
   id: string;
   taskName: string;
-  taskType: 'CHALLENGE' | 'MENTOR_SESSION' | 'SUBJECTIVE_CHALLENGE' | 'EASTER_EGG';
+  taskType: 'CHALLENGE' | 'MENTOR_SESSION' | 'POWERUP_CHALLENGE' | 'EASTER_EGG';
   fileUrl: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   points: number | null;
@@ -192,7 +192,7 @@ const AdminSubmissions = () => {
             <option value="">All Task Types</option>
             <option value="CHALLENGE">Challenge</option>
             <option value="MENTOR_SESSION">Mentor Session</option>
-            <option value="SUBJECTIVE_CHALLENGE">Subjective Challenge</option>
+            <option value="POWERUP_CHALLENGE">Power-Up Challenge</option>
             <option value="EASTER_EGG">Easter Egg</option>
           </select>
 

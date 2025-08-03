@@ -16,7 +16,7 @@ interface Task {
   id: string;
   name: string;
   description: string;
-  type: "CHALLENGE" | "MENTOR_SESSION" | "SUBJECTIVE_CHALLENGE" | "EASTER_EGG";
+  type: "CHALLENGE" | "MENTOR_SESSION" | "POWERUP_CHALLENGE" | "EASTER_EGG";
   points: number;
   isVariablePoints: boolean;
   createdAt: string;
@@ -336,7 +336,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             >
               <option value="CHALLENGE">Challenge</option>
               <option value="MENTOR_SESSION">Mentor Session</option>
-              <option value="SUBJECTIVE_CHALLENGE">Subjective Challenge</option>
+              <option value="POWERUP_CHALLENGE">Power-Up Challenge</option>
               <option value="EASTER_EGG">Easter Egg</option>
             </select>
           </div>
