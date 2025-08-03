@@ -21,7 +21,7 @@ interface Task {
   id: string;
   name: string;
   description: string;
-  type: "CHALLENGE" | "MENTOR_SESSION" | "SUBJECTIVE_CHALLENGE" | "EASTER_EGG";
+  type: "CHALLENGE" | "MENTOR_SESSION" | "POWERUP_CHALLENGE" | "EASTER_EGG";
   points: number;
   isVariablePoints: boolean;
   createdAt: string;
@@ -155,7 +155,7 @@ const Dashboard = () => {
         return styles.challenge;
       case "MENTOR_SESSION":
         return styles.mentorSession;
-      case "SUBJECTIVE_CHALLENGE":
+      case "POWERUP_CHALLENGE":
         return styles.subjectiveChallenge;
       case "EASTER_EGG":
         return styles.easterEgg;

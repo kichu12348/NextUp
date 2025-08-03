@@ -17,7 +17,7 @@ import styles from './Task.module.css';
 interface TaskData {
   id: string;
   name: string;
-  type: 'CHALLENGE' | 'MENTOR_SESSION' | 'SUBJECTIVE_CHALLENGE' | 'EASTER_EGG';
+  type: 'CHALLENGE' | 'MENTOR_SESSION' | 'POWERUP_CHALLENGE' | 'EASTER_EGG';
   description: string;
 }
 
@@ -125,7 +125,7 @@ const Task = () => {
         return styles.challenge;
       case 'MENTOR_SESSION':
         return styles.mentorSession;
-      case 'SUBJECTIVE_CHALLENGE':
+      case 'POWERUP_CHALLENGE':
         return styles.subjectiveChallenge;
       case 'EASTER_EGG':
         return styles.easterEgg;

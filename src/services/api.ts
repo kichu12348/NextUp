@@ -47,7 +47,7 @@ api.interceptors.response.use(
 );
 
 export interface SubmissionCreateData {
-  taskType: 'CHALLENGE' | 'MENTOR_SESSION' | 'SUBJECTIVE_CHALLENGE' | 'EASTER_EGG';
+  taskType: 'CHALLENGE' | 'MENTOR_SESSION' | 'POWERUP_CHALLENGE' | 'EASTER_EGG';
   taskName: string;
   fileUrl: string;
 }
@@ -67,7 +67,7 @@ export interface OTPVerifyData {
 export interface TaskCreateData {
   name: string;
   description: string;
-  type: 'CHALLENGE' | 'MENTOR_SESSION' | 'SUBJECTIVE_CHALLENGE' | 'EASTER_EGG';
+  type: 'CHALLENGE' | 'MENTOR_SESSION' | 'POWERUP_CHALLENGE' | 'EASTER_EGG';
   points: number;
   isVariablePoints: boolean;
 }

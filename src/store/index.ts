@@ -13,7 +13,7 @@ export interface User {
 export interface Submission {
   id: string;
   taskName: string;
-  taskType: 'CHALLENGE' | 'MENTOR_SESSION' | 'SUBJECTIVE_CHALLENGE' | 'EASTER_EGG';
+  taskType: 'CHALLENGE' | 'MENTOR_SESSION' | 'POWERUP_CHALLENGE' | 'EASTER_EGG';
   fileUrl: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   points?: number;
