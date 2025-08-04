@@ -10,12 +10,12 @@ import {
   FaPlus,
   FaFileAlt,
   FaTrophy,
+  FaSearch,
 } from "react-icons/fa";
 import socketService from "../services/socket";
 import styles from "./Dashboard.module.css";
 import { submissionAPI, tasksAPI } from "../services/api";
 import { useAuthStore, useSubmissionStore, type Submission } from "../store";
-
 
 interface Task {
   id: string;
@@ -30,13 +30,18 @@ interface Task {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { submissions, setSubmissions, setLoading, isLoading } =
-    useSubmissionStore();
+  const { submissions, setSubmissions, setLoading, isLoading } = useSubmissionStore();
   const [refreshing, setRefreshing] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [points, setPoints] = useState(user?.totalPoints || 0);
   const [taskCount, setTaskCount] = useState(user?.taskCount || 0);
+
+  // State for Search and Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     if (user?.email) {
@@ -45,31 +50,58 @@ const Dashboard = () => {
     }
   }, [user?.email]);
 
-  // Socket.IO for real-time updates
   useEffect(() => {
-    // Connect to socket for real-time submission updates
     socketService.connect();
-    
-    // Subscribe to user stats updates
     socketService.subscribeToUserStats((data) => {
-      console.log('Dashboard received user stats update:', data);
       if (user && data.email === user.email) {
         setPoints(data.totalPoints);
         setTaskCount(data.taskCount);
       }
     });
-
-    // Cleanup on unmount
     return () => {
       socketService.unsubscribeFromUserStats();
     };
   }, [user?.email]);
+
+  // Effect to apply filters whenever tasks or filter criteria change
+  useEffect(() => {
+    let tempTasks = tasks;
+
+    // 1. Apply search term filter
+    if (searchTerm.trim() !== "") {
+      const lowercasedSearchTerm = searchTerm.toLowerCase();
+      tempTasks = tempTasks.filter(task =>
+        task.name.toLowerCase().includes(lowercasedSearchTerm) ||
+        task.description.toLowerCase().includes(lowercasedSearchTerm)
+      );
+    }
+
+    // 2. Apply status filter
+    if (statusFilter !== "all") {
+      tempTasks = tempTasks.filter(task =>
+        getTaskStatus(task.name).toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    // 3. Apply type filter
+    if (typeFilter !== "all") {
+      tempTasks = tempTasks.filter(task => task.type === typeFilter);
+    }
+
+    setFilteredTasks(tempTasks);
+  }, [searchTerm, statusFilter, typeFilter, tasks, submissions]);
+
+  const getTaskStatus = (taskName: string) => {
+    const submission = submissions.find((s) => s.taskName === taskName);
+    return submission?.status || "NOT_SUBMITTED";
+  };
 
   const loadTasks = async () => {
     setTasksLoading(true);
     try {
       const response = await tasksAPI.getAll();
       setTasks(response.data.tasks || []);
+      setFilteredTasks(response.data.tasks || []); // Initialize filtered list
     } catch (error) {
       console.error("Failed to load tasks:", error);
     } finally {
@@ -79,7 +111,6 @@ const Dashboard = () => {
 
   const loadSubmissions = async () => {
     if (!user?.email) return;
-
     setLoading(true);
     try {
       const response = await submissionAPI.getMySubmissions();
@@ -108,7 +139,6 @@ const Dashboard = () => {
   const handleTaskClick = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     const submission = submissions.find((s) => s.taskName === task?.name);
-
     navigate("/task", {
       state: {
         task,
@@ -116,11 +146,6 @@ const Dashboard = () => {
         isSubmitted: !!submission,
       },
     });
-  };
-
-  const getTaskStatus = (taskName: string) => {
-    const submission = submissions.find((s) => s.taskName === taskName);
-    return submission?.status || "NOT_SUBMITTED";
   };
 
   const getStatusIcon = (status: string) => {
@@ -243,82 +268,111 @@ const Dashboard = () => {
             </button>
           </div>
 
+          <div className={styles.filtersContainer}>
+            <div className={styles.searchInputWrapper}>
+              <FaSearch className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search by name or description..."
+                className={styles.searchInput}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className={styles.filterGroup}>
+              <select className={styles.filterSelect} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                <option value="all">All Statuses</option>
+                <option value="not_submitted">Not Submitted</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <select className={styles.filterSelect} value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+                <option value="all">All Types</option>
+                <option value="CHALLENGE">Challenge</option>
+                <option value="MENTOR_SESSION">Mentor Session</option>
+                <option value="POWERUP_CHALLENGE">Power-Up Challenge</option>
+                <option value="EASTER_EGG">Easter Egg</option>
+              </select>
+            </div>
+          </div>
+
           {isLoading || tasksLoading ? (
             <div className={styles.loading}>
               <div className={styles.spinner} />
             </div>
           ) : (
-            <div className={styles.taskGrid}>
-              {tasks.map((task) => {
-                const status = getTaskStatus(task.name);
-                const submission = getSubmissionForTask(task.name);
+            <>
+              <div className={styles.taskGrid}>
+                {filteredTasks.map((task) => {
+                  const status = getTaskStatus(task.name);
+                  const submission = getSubmissionForTask(task.name);
 
-                return (
-                  <div
-                    key={task.id}
-                    className={styles.taskCard}
-                    onClick={() => handleTaskClick(task.id)}
-                  >
-                    <div className={styles.taskHeader}>
-                      <div>
-                        <h3 className={styles.taskTitle}>{task.name}</h3>
-                        <p>{task.description}</p>
-                        <div className={styles.taskPoints}>
-                          {task.isVariablePoints
-                            ? "Variable Points"
-                            : `${task.points} points`}
+                  return (
+                    <div
+                      key={task.id}
+                      className={styles.taskCard}
+                      onClick={() => handleTaskClick(task.id)}
+                    >
+                      <div className={styles.taskHeader}>
+                        <div>
+                          <h3 className={styles.taskTitle}>{task.name}</h3>
+                          <p>{task.description}</p>
+                          <div className={styles.taskPoints}>
+                            {task.isVariablePoints
+                              ? "Variable Points"
+                              : `${task.points} points`}
+                          </div>
                         </div>
+                        <span
+                          className={`${styles.taskType} ${getTaskTypeClass(
+                            task.type
+                          )}`}
+                        >
+                          {task.type.replace("_", " ")}
+                        </span>
                       </div>
-                      <span
-                        className={`${styles.taskType} ${getTaskTypeClass(
-                          task.type
+
+                      <div
+                        className={`${styles.statusBadge} ${getStatusClass(
+                          status
                         )}`}
                       >
-                        {task.type.replace("_", " ")}
-                      </span>
-                    </div>
-
-                    <div
-                      className={`${styles.statusBadge} ${getStatusClass(
-                        status
-                      )}`}
-                    >
-                      {getStatusIcon(status)}
-                      {getStatusText(status)}
-                    </div>
-
-                    {submission?.points && status === "APPROVED" && (
-                      <div className={styles.earnedPoints}>
-                        ✅ +{submission.points} points earned
+                        {getStatusIcon(status)}
+                        {getStatusText(status)}
                       </div>
-                    )}
 
-                    {submission?.note && (
-                      <div className={styles.taskNote}>"{submission.note}"</div>
-                    )}
+                      {submission?.points && status === "APPROVED" && (
+                        <div className={styles.earnedPoints}>
+                          ✅ +{submission.points} points earned
+                        </div>
+                      )}
 
-                    {status === "NOT_SUBMITTED" && (
-                      <button className={styles.submitButton}>
-                        <FaFileAlt />
-                        Start Task
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      {submission?.note && (
+                        <div className={styles.taskNote}>"{submission.note}"</div>
+                      )}
 
-          {!isLoading && !tasksLoading && tasks.length === 0 && (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>
-                <FaTasks />
+                      {status === "NOT_SUBMITTED" && (
+                        <button className={styles.submitButton}>
+                          <FaFileAlt />
+                          Start Task
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <h3 className={styles.emptyTitle}>No tasks available</h3>
-              <p className={styles.emptyDescription}>
-                New tasks will appear here when they become available.
-              </p>
-            </div>
+
+              {filteredTasks.length === 0 && (
+                 <div className={styles.emptyState}>
+                   <div className={styles.emptyIcon}><FaSearch /></div>
+                   <h3 className={styles.emptyTitle}>No Tasks Found</h3>
+                   <p className={styles.emptyDescription}>
+                     No tasks match your current search and filter criteria. Try adjusting them.
+                   </p>
+                 </div>
+              )}
+            </>
           )}
         </div>
       </main>

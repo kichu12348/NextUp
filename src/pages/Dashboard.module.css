@@ -518,3 +518,76 @@
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   }
 }
+
+
+/* Add these new styles to your CSS file */
+
+.filtersContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.searchInputWrapper {
+  position: relative;
+  flex-grow: 1;
+  min-width: 250px;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.filterGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filterSelect {
+  padding: 0.75rem 1rem;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: #000000;
+}
+
+/* Responsive adjustments for filters */
+@media (max-width: 768px) {
+  .filtersContainer {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .filterGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}

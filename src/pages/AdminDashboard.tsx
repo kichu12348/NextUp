@@ -6,12 +6,15 @@ import {
   FaUsers,
   FaChartBar,
   FaSignOutAlt,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
 import { adminAPI } from "../services/api";
 import styles from "./AdminDashboard.module.css";
 import { IoClose } from "react-icons/io5";
 import { BsFileEarmarkSpreadsheetFill } from "react-icons/bs";
 
+// Task interface for type safety
 interface Task {
   id: string;
   name: string;
@@ -24,15 +27,18 @@ interface Task {
 
 const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [showCreateTask, setShowCreateTask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // State to manage the modal for both create and edit operations
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
   const [stats, setStats] = useState({
     totalTasks: 0,
     totalParticipants: 0,
     totalSubmissions: 0,
     pendingSubmissions: 0,
   });
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,17 +48,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      // Load tasks and stats
       const [tasksResponse, statsResponse] = await Promise.all([
         adminAPI.getTasks(),
         adminAPI.getStats(),
       ]);
-
       setTasks(tasksResponse.data.tasks || []);
       setStats(statsResponse.data);
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
-      // Fallback to mock data
       setStats({
         totalTasks: 0,
         totalParticipants: 0,
@@ -65,9 +68,41 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("admin-token");
+    localStorage.removeItem("admin-token"); 
     onLogout();
     navigate("/admin/login");
+  };
+
+  // Handler to open the modal in "create" mode
+  const handleOpenCreateModal = () => {
+    setEditingTask(null); // [cite: 505]
+    setIsModalOpen(true);
+  };
+
+  // Handler to open the modal in "edit" mode
+  const handleOpenEditModal = (task: Task) => {
+    setEditingTask(task);
+    setIsModalOpen(true);
+  };
+
+  // Handler to close the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingTask(null);
+  };
+
+  // Handler for deleting a task
+  const handleDeleteTask = async (taskId: string) => {
+    if (window.confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
+      try {
+        await adminAPI.deleteTask(taskId);
+        // Refresh data after successful deletion
+        loadDashboardData();
+      } catch (error) {
+        console.error("Failed to delete task:", error);
+        alert("Failed to delete task. Please try again.");
+      }
+    }
   };
 
   const handleExcelExport = async () => {
@@ -79,7 +114,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       link.setAttribute("download", "participants.xlsx");
       document.body.appendChild(link);
       link.click();
-      //clean up
+      // Cleanup the created URL object
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -89,7 +124,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>Admin Dashboard</h1>
           <div className={styles.headerActions}>
@@ -103,42 +138,34 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className={styles.main}>
+      <main className={styles.main}>
         {/* Stats Cards */}
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <FaTasks />
-            </div>
+            <div className={styles.statIcon}><FaTasks /></div>
             <div className={styles.statContent}>
               <h3 className={styles.statValue}>{stats.totalTasks}</h3>
               <p className={styles.statLabel}>Total Tasks</p>
             </div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <FaUsers />
-            </div>
+            <div className={styles.statIcon}><FaUsers /></div>
             <div className={styles.statContent}>
               <h3 className={styles.statValue}>{stats.totalParticipants}</h3>
               <p className={styles.statLabel}>Participants</p>
             </div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <FaChartBar />
-            </div>
+            <div className={styles.statIcon}><FaChartBar /></div>
             <div className={styles.statContent}>
               <h3 className={styles.statValue}>{stats.totalSubmissions}</h3>
               <p className={styles.statLabel}>Total Submissions</p>
             </div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <FaChartBar />
-            </div>
+            <div className={styles.statIcon}><FaChartBar /></div>
             <div className={styles.statContent}>
               <h3 className={styles.statValue}>{stats.pendingSubmissions}</h3>
               <p className={styles.statLabel}>Pending Review</p>
@@ -150,38 +177,23 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
         <div className={styles.actionsSection}>
           <h2 className={styles.sectionTitle}>Quick Actions</h2>
           <div className={styles.actionGrid}>
-            <button
-              onClick={() => navigate("/admin/submissions")}
-              className={styles.actionButton}
-            >
-              <FaTasks />
-              Review Submissions
+            <button onClick={() => navigate("/admin/submissions")} className={styles.actionButton}>
+              <FaTasks /> Review Submissions
             </button>
-            <button
-              onClick={() => navigate("/admin/participants")}
-              className={styles.actionButton}
-            >
-              <FaUsers />
-              Manage Participants
+            <button onClick={() => navigate("/admin/participants")} className={styles.actionButton}>
+              <FaUsers /> Manage Participants
             </button>
-            <button
-              onClick={() => navigate("/leaderboard")}
-              className={styles.actionButton}
-            >
-              <FaChartBar />
-              View Leaderboard
+            <button onClick={() => navigate("/leaderboard")} className={styles.actionButton}>
+              <FaChartBar /> View Leaderboard
             </button>
           </div>
         </div>
 
-        {/* Recent Tasks */}
+        {/* Manage Tasks */}
         <div className={styles.tasksSection}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Recent Tasks</h2>
-            <button
-              onClick={() => setShowCreateTask(true)}
-              className={styles.createButton}
-            >
+            <h2 className={styles.sectionTitle}>Manage Tasks</h2>
+            <button onClick={handleOpenCreateModal} className={styles.createButton}>
               <FaPlus />
               Create Task
             </button>
@@ -202,11 +214,7 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                   <div key={task.id} className={styles.taskCard}>
                     <div className={styles.taskHeader}>
                       <h3 className={styles.taskName}>{task.name}</h3>
-                      <span
-                        className={`${styles.taskType} ${
-                          styles[task.type.toLowerCase()]
-                        }`}
-                      >
+                      <span className={`${styles.taskType} ${styles[task.type.toLowerCase()]}`}>
                         {task.type.replace("_", " ")}
                       </span>
                     </div>
@@ -217,6 +225,14 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                           ? "Variable Points"
                           : `${task.points} points`}
                       </span>
+                      <div className={styles.taskActions}>
+                          <button onClick={() => handleOpenEditModal(task)} className={`${styles.taskActionButton} ${styles.editButton}`}>
+                              <FaEdit />
+                          </button>
+                          <button onClick={() => handleDeleteTask(task.id)} className={`${styles.taskActionButton} ${styles.deleteButton}`}>
+                              <FaTrash />
+                          </button>
+                      </div>
                       <span className={styles.taskDate}>
                         {new Date(task.createdAt).toLocaleDateString()}
                       </span>
@@ -227,60 +243,71 @@ const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
-      {/* Create Task Modal */}
-      {showCreateTask && (
-        <CreateTaskModal
-          onClose={() => setShowCreateTask(false)}
-          onTaskCreated={loadDashboardData}
+      {/* Reusable Task Modal */}
+      {isModalOpen && (
+        <TaskModal
+          onClose={handleCloseModal}
+          onSuccess={() => {
+            handleCloseModal();
+            loadDashboardData();
+          }}
+          task={editingTask}
         />
       )}
     </div>
   );
 };
 
-// Create Task Modal Component
-interface CreateTaskModalProps {
+// --- Reusable Modal Component ---
+interface TaskModalProps {
   onClose: () => void;
-  onTaskCreated: () => void;
+  onSuccess: () => void;
+  task: Task | null; // Accept a task to edit, or null to create
 }
 
-const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
+const TaskModal = ({ onClose, onSuccess, task }: TaskModalProps) => {
+  const isEditMode = Boolean(task);
+  
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    type: "CHALLENGE" as const,
-    points: 0,
-    isVariablePoints: false,
+    name: task?.name || "",
+    description: task?.description || "",
+    type: task?.type || ("CHALLENGE" as const),
+    points: task?.points || 0,
+    isVariablePoints: task?.isVariablePoints || false,
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.description.trim()) {
-      setError("Please fill in all required fields");
-      return;
+    if (!formData.name.trim() || !formData.description.trim()) { // [cite: 519]
+      setError("Please fill in all required fields"); // [cite: 519]
+      return;     // [cite: 519]
     }
-
-    if (!formData.isVariablePoints && formData.points <= 0) {
-      setError("Please enter a valid point value");
-      return;
+    if (!formData.isVariablePoints && formData.points <= 0) { // [cite: 520]
+      setError("Please enter a valid point value"); // [cite: 520]
+      return; // [cite: 521]
     }
 
     setIsLoading(true);
     setError("");
 
     try {
-      // Create task via API
-      await adminAPI.createTask(formData);
-      onTaskCreated();
-      onClose();
-    } catch (error) {
-      setError("Failed to create task. Please try again.");
+      if (isEditMode) {
+        // Update task via API
+        await adminAPI.updateTask(task!.id, formData);
+      } else {
+        // Create task via API
+        await adminAPI.createTask(formData);
+      }
+      onSuccess(); // [cite: 522]
+    } catch (err) {
+      setError(`Failed to ${isEditMode ? 'update' : 'create'} task. Please try again.`); // [cite: 522]
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); 
     }
   };
 
@@ -288,7 +315,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
-          <h2>Create New Task</h2>
+          <h2>{isEditMode ? "Edit Task" : "Create New Task"}</h2>
           <button onClick={onClose} className={styles.closeButton}>
             <IoClose />
           </button>
@@ -302,9 +329,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })} // [cite: 525]
               className={styles.input}
               placeholder="Enter task name"
               required
@@ -315,9 +340,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             <label className={styles.label}>Description *</label>
             <textarea
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })} // [cite: 527]
               className={styles.textarea}
               placeholder="Describe the task requirements"
               rows={4}
@@ -329,9 +352,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
             <label className={styles.label}>Task Type</label>
             <select
               value={formData.type}
-              onChange={(e) =>
-                setFormData({ ...formData, type: e.target.value as any })
-              }
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as any })} // [cite: 529]
               className={styles.select}
             >
               <option value="CHALLENGE">Challenge</option>
@@ -346,12 +367,7 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
               <input
                 type="checkbox"
                 checked={formData.isVariablePoints}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    isVariablePoints: e.target.checked,
-                  })
-                }
+                onChange={(e) => setFormData({ ...formData, isVariablePoints: e.target.checked })} // [cite: 531, 532]
                 className={styles.checkbox}
               />
               Variable Points (assign points manually per submission)
@@ -363,13 +379,8 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
               <label className={styles.label}>Fixed Points</label>
               <input
                 type="number"
-                value={formData.points || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    points: parseInt(e.target.value) || 0,
-                  })
-                }
+                value={formData.points || ""} // [cite: 534, 535]
+                onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) || 0 })} // [cite: 535]
                 className={styles.input}
                 placeholder="Enter point value"
                 min="1"
@@ -379,19 +390,11 @@ const CreateTaskModal = ({ onClose, onTaskCreated }: CreateTaskModalProps) => {
           )}
 
           <div className={styles.modalActions}>
-            <button
-              type="button"
-              onClick={onClose}
-              className={styles.cancelButton}
-            >
+            <button type="button" onClick={onClose} className={styles.cancelButton}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating..." : "Create Task"}
+            <button type="submit" className={styles.submitButton} disabled={isLoading}>
+              {isLoading ? "Saving..." : isEditMode ? "Save Changes" : "Create Task"}
             </button>
           </div>
         </form>
