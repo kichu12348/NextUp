@@ -1,31 +1,31 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  FaArrowLeft, 
-  FaClock, 
-  FaCheckCircle, 
-  FaTimesCircle, 
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  FaArrowLeft,
+  FaClock,
+  FaCheckCircle,
+  FaTimesCircle,
   FaExclamationTriangle,
   FaCheck,
   FaUpload,
-  FaExternalLinkAlt
-} from 'react-icons/fa';
-import { submissionAPI, type SubmissionCreateData } from '../services/api';
-import { useAuthStore, useSubmissionStore } from '../store';
-import styles from './Task.module.css';
+  FaExternalLinkAlt,
+} from "react-icons/fa";
+import { submissionAPI, type SubmissionCreateData } from "../services/api";
+import { useAuthStore, useSubmissionStore } from "../store";
+import styles from "./Task.module.css";
 
 interface TaskData {
   id: string;
   name: string;
-  type: 'CHALLENGE' | 'MENTOR_SESSION' | 'POWERUP_CHALLENGE' | 'EASTER_EGG';
+  type: "CHALLENGE" | "MENTOR_SESSION" | "POWERUP_CHALLENGE" | "EASTER_EGG";
   description: string;
 }
 
 const Task = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuthStore();
-  const { addSubmission } = useSubmissionStore();
+  const user = useAuthStore((s) => s.user);
+  const addSubmission = useSubmissionStore((s) => s.addSubmission);
 
   const { task, submission, isSubmitted } = location.state as {
     task: TaskData;
@@ -34,24 +34,26 @@ const Task = () => {
   };
 
   const [formData, setFormData] = useState({
-    taskName: task?.name || '',
-    fileUrl: '',
+    taskName: task?.name || "",
+    fileUrl: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (!task) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [task, navigate]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -66,25 +68,26 @@ const Task = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    if (isLoading) return;
+
     if (!user) {
-      setError('You must be logged in to submit a task');
+      setError("You must be logged in to submit a task");
       return;
     }
 
     if (!formData.fileUrl.trim()) {
-      setError('Please provide a file URL');
+      setError("Please provide a file URL");
       return;
     }
 
     if (!validateUrl(formData.fileUrl)) {
-      setError('Please provide a valid URL');
+      setError("Please provide a valid URL");
       return;
     }
 
     setIsLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const submissionData: SubmissionCreateData = {
@@ -94,25 +97,25 @@ const Task = () => {
       };
 
       const response = await submissionAPI.create(submissionData);
-      
+
       if (response.data.submission) {
         addSubmission(response.data.submission);
-        setSuccess('Task submitted successfully! You will be notified once it is reviewed.');
-        
-        // Navigate back to dashboard after 2 seconds
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
+        setSuccess(
+          "Task submitted successfully! You will be notified once it is reviewed."
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        navigate("/dashboard");
       }
     } catch (error: any) {
-      console.error('Submission error:', error);
-      
+      console.error("Submission error:", error);
+
       if (error.response?.status === 429) {
-        setError('Too many submissions. Please wait before submitting again.');
+        setError("Too many submissions. Please wait before submitting again.");
       } else if (error.response?.data?.error) {
         setError(error.response.data.error);
       } else {
-        setError('Failed to submit task. Please try again.');
+        setError("Failed to submit task. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -121,26 +124,34 @@ const Task = () => {
 
   const getTaskTypeClass = (type: string) => {
     switch (type) {
-      case 'CHALLENGE':
+      case "CHALLENGE":
         return styles.challenge;
-      case 'MENTOR_SESSION':
+      case "MENTOR_SESSION":
         return styles.mentorSession;
-      case 'POWERUP_CHALLENGE':
+      case "POWERUP_CHALLENGE":
         return styles.subjectiveChallenge;
-      case 'EASTER_EGG':
+      case "EASTER_EGG":
         return styles.easterEgg;
       default:
-        return '';
+        return "";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'APPROVED':
-        return <FaCheckCircle className={`${styles.statusIcon} ${styles.approved}`} />;
-      case 'REJECTED':
-        return <FaTimesCircle className={`${styles.statusIcon} ${styles.rejected}`} />;
-      case 'PENDING':
+      case "APPROVED":
+        return (
+          <FaCheckCircle
+            className={`${styles.statusIcon} ${styles.approved}`}
+          />
+        );
+      case "REJECTED":
+        return (
+          <FaTimesCircle
+            className={`${styles.statusIcon} ${styles.rejected}`}
+          />
+        );
+      case "PENDING":
         return <FaClock className={`${styles.statusIcon} ${styles.pending}`} />;
       default:
         return null;
@@ -149,27 +160,38 @@ const Task = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'APPROVED':
-        return { title: 'Task Approved!', subtitle: 'Great work! Your submission has been approved.' };
-      case 'REJECTED':
-        return { title: 'Task Rejected', subtitle: 'Your submission needs improvement. Check the feedback below.' };
-      case 'PENDING':
-        return { title: 'Under Review', subtitle: 'Your submission is being reviewed. You\'ll be notified once it\'s complete.' };
+      case "APPROVED":
+        return {
+          title: "Task Approved!",
+          subtitle: "Great work! Your submission has been approved.",
+        };
+      case "REJECTED":
+        return {
+          title: "Task Rejected",
+          subtitle:
+            "Your submission needs improvement. Check the feedback below.",
+        };
+      case "PENDING":
+        return {
+          title: "Under Review",
+          subtitle:
+            "Your submission is being reviewed. You'll be notified once it's complete.",
+        };
       default:
-        return { title: '', subtitle: '' };
+        return { title: "", subtitle: "" };
     }
   };
 
   const getStatusClass = (status: string) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return styles.approved;
-      case 'REJECTED':
+      case "REJECTED":
         return styles.rejected;
-      case 'PENDING':
+      case "PENDING":
         return styles.pending;
       default:
-        return '';
+        return "";
     }
   };
 
@@ -181,7 +203,7 @@ const Task = () => {
     <div className={styles.container}>
       <header className={styles.header}>
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate("/dashboard")}
           className={styles.backButton}
         >
           <FaArrowLeft />
@@ -198,8 +220,10 @@ const Task = () => {
               <h1>{task.name}</h1>
               <p className={styles.taskDescription}>{task.description}</p>
             </div>
-            <span className={`${styles.taskType} ${getTaskTypeClass(task.type)}`}>
-              {task.type.replace('_', ' ')}
+            <span
+              className={`${styles.taskType} ${getTaskTypeClass(task.type)}`}
+            >
+              {task.type.replace("_", " ")}
             </span>
           </div>
         </div>
@@ -209,7 +233,11 @@ const Task = () => {
           <div className={styles.statusCard}>
             <div className={styles.statusHeader}>
               {getStatusIcon(submission.status)}
-              <div className={`${styles.statusText} ${getStatusClass(submission.status)}`}>
+              <div
+                className={`${styles.statusText} ${getStatusClass(
+                  submission.status
+                )}`}
+              >
                 <h2>{getStatusText(submission.status).title}</h2>
                 <p className={styles.statusSubtext}>
                   {getStatusText(submission.status).subtitle}
@@ -221,12 +249,12 @@ const Task = () => {
               <div className={styles.submissionItem}>
                 <span className={styles.submissionLabel}>Submitted:</span>
                 <span className={styles.submissionValue}>
-                  {new Date(submission.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
+                  {new Date(submission.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </span>
               </div>
@@ -240,14 +268,20 @@ const Task = () => {
                   className={`${styles.submissionValue} ${styles.link}`}
                 >
                   {submission.fileUrl}
-                  <FaExternalLinkAlt style={{ marginLeft: '0.25rem', fontSize: '0.75rem' }} />
+                  <FaExternalLinkAlt
+                    style={{ marginLeft: "0.25rem", fontSize: "0.75rem" }}
+                  />
                 </a>
               </div>
 
               {submission.points && (
                 <div className={styles.submissionItem}>
-                  <span className={styles.submissionLabel}>Points Awarded:</span>
-                  <span className={`${styles.submissionValue} ${styles.points}`}>
+                  <span className={styles.submissionLabel}>
+                    Points Awarded:
+                  </span>
+                  <span
+                    className={`${styles.submissionValue} ${styles.points}`}
+                  >
                     +{submission.points} points
                   </span>
                 </div>
@@ -263,17 +297,18 @@ const Task = () => {
         )}
 
         {/* Submission Form (if not submitted or rejected) */}
-        {(!isSubmitted || submission?.status === 'REJECTED') && (
+        {(!isSubmitted || submission?.status === "REJECTED") && (
           <div className={styles.submitForm}>
             <div className={styles.formHeader}>
               <h2 className={styles.formTitle}>
-                {submission?.status === 'REJECTED' ? 'Resubmit Task' : 'Submit Task'}
+                {submission?.status === "REJECTED"
+                  ? "Resubmit Task"
+                  : "Submit Task"}
               </h2>
               <p className={styles.formDescription}>
-                {submission?.status === 'REJECTED' 
-                  ? 'Address the feedback and submit your improved work.'
-                  : 'Provide the URL to your completed work. Make sure the link is accessible and contains your solution.'
-                }
+                {submission?.status === "REJECTED"
+                  ? "Address the feedback and submit your improved work."
+                  : "Provide the URL to your completed work. Make sure the link is accessible and contains your solution."}
               </p>
             </div>
 
@@ -322,8 +357,8 @@ const Task = () => {
                   disabled={isLoading}
                 />
                 <p className={styles.helpText}>
-                  Provide a direct link to your work (GitHub repository, Google Drive, etc.). 
-                  Make sure the link is publicly accessible.
+                  Provide a direct link to your work (GitHub repository, Google
+                  Drive, etc.). Make sure the link is publicly accessible.
                 </p>
               </div>
 
@@ -332,12 +367,8 @@ const Task = () => {
                 className={styles.submitButton}
                 disabled={isLoading || !formData.fileUrl.trim()}
               >
-                {isLoading ? (
-                  <div className={styles.spinner} />
-                ) : (
-                  <FaUpload />
-                )}
-                {isLoading ? 'Submitting...' : 'Submit Task'}
+                {isLoading ? <div className={styles.spinner} /> : <FaUpload />}
+                {isLoading ? "Submitting..." : "Submit Task"}
               </button>
             </form>
           </div>
