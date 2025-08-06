@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
-  baseURL: API_BASE_URL+"/api",
+  baseURL: API_BASE_URL + "/api",
   timeout: 10000,
 });
 
@@ -83,6 +82,7 @@ export const authAPI = {
 export const participantAPI = {
   requestOTP: (data: OTPRequestData) => api.post('/participant/request-otp', data),
   verifyOTP: (data: OTPVerifyData) => api.post('/participant/verify-otp', data),
+  updateProfile: (data: { name?: string, college?: string, gender?: string }) => api.put('/participant/profile', data),
 };
 
 export const adminAPI = {
@@ -91,7 +91,7 @@ export const adminAPI = {
   updateTask: (id: string, data: Partial<TaskCreateData>) => api.put(`/admin/tasks/${id}`, data),
   deleteTask: (id: string) => api.delete(`/admin/tasks/${id}`),
   getStats: () => api.get('/admin/tasks/stats'),
-  getSubmissions: (params?: { page?: number; limit?: number; status?: string; taskType?: string; email?: string }) => 
+  getSubmissions: (params?: { page?: number; limit?: number; status?: string; taskType?: string; email?: string }) =>
     api.get('/admin/submissions', { params }),
   updateSubmission: (id: string, data: { status?: 'PENDING' | 'APPROVED' | 'REJECTED'; points?: number; note?: string }) =>
     api.patch(`/admin/submissions/${id}`, data),
@@ -105,8 +105,9 @@ export const submissionAPI = {
 };
 
 export const leaderboardAPI = {
-  get: (page = 1, limit = 50) => 
+  get: (page = 1, limit = 50) =>
     api.get(`/leaderboard?page=${page}&limit=${limit}`),
+  getColleges: () => api.get('/leaderboard/colleges'),
 };
 
 export const tasksAPI = {

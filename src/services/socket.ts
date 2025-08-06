@@ -49,6 +49,18 @@ class SocketService {
     }
   }
 
+  subscribeToCollegeLeaderboard(callback: (data: any) => void): void {
+    if (this.socket) {
+      this.socket.on('college-leaderboard:update', callback);
+    }
+  }
+
+  unsubscribeFromCollegeLeaderboard(): void {
+    if (this.socket) {
+      this.socket.off('college-leaderboard:update');
+    }
+  }
+
   subscribeToUserStats(callback: (data: any) => void): void {
     if (this.socket) {
       this.socket.on('user:stats:update', callback);

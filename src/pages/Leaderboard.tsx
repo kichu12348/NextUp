@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaTrophy, FaSync } from "react-icons/fa";
+import { useNavigate, Link } from "react-router-dom"; // Import Link
+import { FaTrophy, FaSync, FaUniversity } from "react-icons/fa";
 import { leaderboardAPI } from "../services/api";
 import socketService from "../services/socket";
 import styles from "./Leaderboard.module.css";
@@ -104,6 +104,11 @@ const Leaderboard = () => {
           <FaTrophy className={styles.titleIcon} />
           Leaderboard
         </h1>
+        {/* ADD LINK TO COLLEGE LEADERBOARD */}
+        <Link to="/colleges" className={styles.collegeLinkButton}>
+          <FaUniversity />
+          <span>College Ranks</span>
+        </Link>
         <button
           onClick={loadLeaderboard}
           className={styles.refreshButton}

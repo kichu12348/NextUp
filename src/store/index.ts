@@ -6,6 +6,7 @@ export interface User {
   email: string;
   name: string;
   college?: string;
+  gender?: string; // Added gender
   totalPoints: number;
   taskCount: number;
 }
@@ -56,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
         });
       },
-      setUser: (user) => set({ user }),
+      setUser: (user) => set((state) => ({ user: { ...state.user, ...user } })),
       setLoading: (loading) => set({ isLoading: loading }),
       validateToken: async () => {
         try {
@@ -73,6 +74,8 @@ export const useAuthStore = create<AuthState>()(
               user: {
                 email: response.data.participant.email,
                 name: response.data.participant.name,
+                college: response.data.participant.college,
+                gender: response.data.participant.gender, // Added gender
                 totalPoints: response.data.participant.totalPoints,
                 taskCount: response.data.participant.taskCount,
               },

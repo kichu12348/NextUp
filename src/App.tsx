@@ -15,6 +15,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminSubmissions from "./pages/AdminSubmissions";
 import AdminManageUsers from "./pages/AdminManageUsers";
 import Leaderboard from "./pages/Leaderboard";
+import Profile from "./pages/Profile";
+import CollegeLeaderboard from "./pages/CollegeLeaderboard"; // Import CollegeLeaderboard
 import "./App.css";
 import { FaHeart } from "react-icons/fa";
 
@@ -159,6 +161,8 @@ function App() {
 
             {/* Public Leaderboard Route */}
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/colleges" element={<CollegeLeaderboard />} /> {/* ADD THIS ROUTE */}
+
 
             {/* Admin Routes */}
             <Route
@@ -212,6 +216,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Task />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

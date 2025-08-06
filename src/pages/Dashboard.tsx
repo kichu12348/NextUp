@@ -11,6 +11,7 @@ import {
   FaFileAlt,
   FaTrophy,
   FaSearch,
+  FaUserEdit, // Import new icon
 } from "react-icons/fa";
 import socketService from "../services/socket";
 import styles from "./Dashboard.module.css";
@@ -236,6 +237,12 @@ const Dashboard = () => {
           <Link to="/leaderboard" className={styles.leaderboardButton}>
             <FaTrophy />
             Leaderboard
+          </Link>
+
+          {/* Add Profile Button */}
+          <Link to="/profile" className={styles.leaderboardButton}>
+            <FaUserEdit />
+            Profile
           </Link>
 
           <button onClick={handleLogout} className={styles.logoutButton}>

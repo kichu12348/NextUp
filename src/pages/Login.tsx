@@ -12,6 +12,18 @@ import { useAuthStore } from "../store";
 import { CustomDropdown } from "../components";
 import styles from "./Login.module.css";
 
+const collegeOptions = [
+  { value: "MEC", label: "Model Engineering College, Thrikkakkara" },
+  { value: "LBSCEK", label: "LBS College of Engineering, Kasaragod" },
+  { value: "LBSITW", label: "LBS Institute of Technology for Women, Poojappura" },
+  { value: "SNGCE", label: "Sree Narayana Gurukulam College of Engineering" },
+  { value: "CEC", label: "College of Engineering, Chengannur" },
+  { value: "CEV", label: "College of Engineering, Vadakara" },
+  { value: "GECBH", label: "Government Engineering College, Barton Hill" },
+  { value: "GWTPC", label: "Government Women's Polytechnic College" },
+  { value: "SCT", label: "Sree Chitra Thirunal College of Engineering" }
+];
+
 const Login = () => {
   const [step, setStep] = useState<"email" | "details" | "otp">("email");
   const [email, setEmail] = useState("");
@@ -101,7 +113,7 @@ const Login = () => {
       return;
     }
     if (!college.trim()) {
-      setError("Please enter your college name");
+      setError("Please select your college");
       return;
     }
     if (!gender.trim()) {
@@ -295,15 +307,14 @@ const Login = () => {
                 <label htmlFor="college" className={styles.label}>
                   Your College
                 </label>
-                <input
-                  id="college"
-                  type="text"
+                <CustomDropdown
+                  options={collegeOptions}
                   value={college}
-                  onChange={(e) => setCollege(e.target.value)}
-                  className={styles.input}
-                  placeholder="Enter your college name"
+                  onChange={(value) => setCollege(value)}
+                  placeholder="Select your college"
                   disabled={isLoading}
-                  required
+                  className={styles.input}
+                  style={{ padding: 0, outline: "none", border: "none" }}
                 />
               </div>
               <div className={styles.inputGroup}>
